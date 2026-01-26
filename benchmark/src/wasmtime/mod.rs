@@ -39,7 +39,7 @@ pub async fn wasm_task() {
 
     let engine = Engine::new(&config).expect("engine");
 
-    let precompiled = include_bytes!("../../wasm_second.cwasm");
+    let precompiled = include_bytes!("../../../benchmark_module.cwasm");
 
     let module =
         unsafe { Module::deserialize(&engine, precompiled).expect("failed to deser module") };

@@ -27,17 +27,17 @@ panic-probe = { version = "0.3", features = ["print-defmt"] }
 # ] }
 
 
-embassy-executor = { path = "third_party/embassy/embassy-executor", features = [
+embassy-executor = { path = "../third_party/embassy/embassy-executor", features = [
     "arch-cortex-m",
     "executor-thread",
     "task-arena-size-12288",
 ] }
-embassy-time = { path = "third_party/embassy/embassy-time", features = [
+embassy-time = { path = "../third_party/embassy/embassy-time", features = [
     "tick-hz-32_768",
     "defmt",
     "defmt-timestamp-uptime",
 ] }
-embassy-nrf = { path = "third_party/embassy/embassy-nrf", features = [
+embassy-nrf = { path = "../third_party/embassy/embassy-nrf", features = [
     "nrf5340-app-s",
     "time-driver-rtc1",
     "gpiote",
