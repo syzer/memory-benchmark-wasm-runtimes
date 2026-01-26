@@ -1,0 +1,18 @@
+[package]
+name = "benchmark_module"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+opt-level = "z"   # Optimize for size
+lto = true        # Link-time optimization
+codegen-units = 1 # Single codegen unit for better optimization
+panic = "abort"   # Remove panic unwinding code
+strip = true      # Strip symbols
+
+[dependencies]
+heapless = "0.8.0"
+spin = "0.10.0"
