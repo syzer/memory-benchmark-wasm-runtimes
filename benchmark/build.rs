@@ -25,7 +25,7 @@ fn main() {
 
     #[cfg(feature = "engine-wamr")]
     {
-        let wamr_dir = std::path::PathBuf::from("third_party/wamr");
+        let wamr_dir = std::path::PathBuf::from("../third_party/wamr");
         println!("cargo:wamr_dir={}", wamr_dir.display()); // making it available to main code
         println!("cargo:rerun-if-changed={}", wamr_dir.display()); // rerun the build script if the wamr directory changes
         println!(

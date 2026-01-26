@@ -9,6 +9,8 @@ use embassy_time as _;
 
 #[cfg(feature = "engine-tinywasm")]
 use memory_benchmark::tiny;
+#[cfg(feature = "engine-wamr")]
+use memory_benchmark::wamr;
 #[cfg(feature = "engine-wasmi")]
 use memory_benchmark::wasmi;
 #[cfg(feature = "engine-wasmtime")]
@@ -51,7 +53,7 @@ async fn main(spawner: Spawner) {
 
     #[cfg(feature = "engine-wamr")]
     spawner
-        .spawn(playground::wamr::wasm_task(rx))
+        .spawn(wamr::wasm_task())
         .expect("failed to spawn wasm task");
 
     #[cfg(not(any(
