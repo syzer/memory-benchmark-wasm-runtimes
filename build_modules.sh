@@ -11,4 +11,8 @@ echo "=== Precompiling module for wasmtime ==="
 cd "$SCRIPT_DIR/wasmtime_precompile"
 cargo run
 
+echo "=== Precompiling module for tinywasm ==="
+cd "$SCRIPT_DIR/tinywasm_precompile"
+cargo run
+
 echo "=== Done ==="

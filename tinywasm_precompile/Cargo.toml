@@ -1,0 +1,10 @@
+[package]
+name = "tinywasm_precompile"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tinywasm = { git = "https://github.com/explodingcamera/tinywasm", rev = "73c136c645460d4f2ea9300864bddc9ad01a6bae", features = [
+    "parser",
+    "archive",
+] }

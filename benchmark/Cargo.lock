@@ -674,6 +674,7 @@ dependencies = [
  "embassy-time",
  "embedded-alloc",
  "panic-probe",
+ "tinywasm",
  "wasmi",
  "wasmtime",
 ]
@@ -961,6 +962,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinywasm"
+version = "0.9.0-alpha.0"
+source = "git+https://github.com/explodingcamera/tinywasm?rev=73c136c645460d4f2ea9300864bddc9ad01a6bae#73c136c645460d4f2ea9300864bddc9ad01a6bae"
+dependencies = [
+ "libm",
+ "tinywasm-parser",
+ "tinywasm-types",
+]
+
+[[package]]
+name = "tinywasm-parser"
+version = "0.9.0-alpha.0"
+source = "git+https://github.com/explodingcamera/tinywasm?rev=73c136c645460d4f2ea9300864bddc9ad01a6bae#73c136c645460d4f2ea9300864bddc9ad01a6bae"
+dependencies = [
+ "tinywasm-types",
+ "wasmparser 0.236.1",
+]
+
+[[package]]
+name = "tinywasm-types"
+version = "0.9.0-alpha.0"
+source = "git+https://github.com/explodingcamera/tinywasm?rev=73c136c645460d4f2ea9300864bddc9ad01a6bae#73c136c645460d4f2ea9300864bddc9ad01a6bae"
+dependencies = [
+ "postcard",
+ "serde",
+]
+
+[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1031,6 +1060,15 @@ name = "wasmparser"
 version = "0.228.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4abf1132c1fdf747d56bbc1bb52152400c70f336870f968b85e89ea422198ae3"
+dependencies = [
+ "bitflags 2.10.0",
+]
+
+[[package]]
+name = "wasmparser"
+version = "0.236.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9b1e81f3eb254cf7404a82cee6926a4a3ccc5aad80cc3d43608a070c67aa1d7"
 dependencies = [
  "bitflags 2.10.0",
 ]

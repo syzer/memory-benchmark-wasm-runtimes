@@ -8,7 +8,7 @@ edition = "2021"
 default = []
 
 engine-wasmi = ["dep:wasmi"]
-# engine-tinywasm = ["dep:tinywasm"]
+engine-tinywasm = ["dep:tinywasm"]
 engine-wasmtime = ["dep:wasmtime"]
 # engine-wamr = ["dep:libm"]
 
@@ -47,15 +47,10 @@ embedded-alloc = "0.5"
 wasmi = { git = "https://github.com/wasmi-labs/wasmi", rev = "6fe4cad04ea6c735231a66e68d5ab38a973df78d", default-features = false, optional = true }
 # dlmalloc = { version = "0.2", default-features = false }
 
-# # tinywasm = { git = "https://github.com/explodingcamera/tinywasm", rev = "73c136c645460d4f2ea9300864bddc9ad01a6bae", default-features = false, features = [
-# #     "archive",
-# #     "parser",
-# # ], optional = true }
-# tinywasm = { path = "../tinywasm/crates/tinywasm", default-features = false, features = [
-#     "archive",
-#     "parser",
-#     "async",
-# ], optional = true }
+tinywasm = { git = "https://github.com/explodingcamera/tinywasm", rev = "73c136c645460d4f2ea9300864bddc9ad01a6bae", default-features = false, features = [
+    "archive",
+    "parser",
+], optional = true }
 
 
 wasmtime = { version = "38.0.4", default-features = false, features = [
