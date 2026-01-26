@@ -7,6 +7,8 @@ use defmt_rtt as _;
 use embassy_nrf as _;
 use embassy_time as _;
 
+#[cfg(feature = "engine-wasmi")]
+use memory_benchmark::wasmi;
 #[cfg(feature = "engine-wasmtime")]
 use memory_benchmark::wasmtime;
 use panic_probe as _;
@@ -37,7 +39,7 @@ async fn main(spawner: Spawner) {
         .expect("failed to spawn wasm task");
     #[cfg(feature = "engine-wasmi")]
     spawner
-        .spawn(playground::wasmi::wasm_task(rx))
+        .spawn(wasmi::wasm_task())
         .expect("failed to spawn wasm task");
 
     #[cfg(feature = "engine-wasmtime")]

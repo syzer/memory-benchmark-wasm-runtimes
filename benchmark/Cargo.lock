@@ -674,6 +674,7 @@ dependencies = [
  "embassy-time",
  "embedded-alloc",
  "panic-probe",
+ "wasmi",
  "wasmtime",
 ]
 
@@ -905,6 +906,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "spin"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -987,6 +994,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmi"
+version = "0.51.0"
+source = "git+https://github.com/wasmi-labs/wasmi?rev=6fe4cad04ea6c735231a66e68d5ab38a973df78d#6fe4cad04ea6c735231a66e68d5ab38a973df78d"
+dependencies = [
+ "spin",
+ "wasmi_collections",
+ "wasmi_core",
+ "wasmi_ir",
+ "wasmparser 0.228.0",
+]
+
+[[package]]
+name = "wasmi_collections"
+version = "0.51.0"
+source = "git+https://github.com/wasmi-labs/wasmi?rev=6fe4cad04ea6c735231a66e68d5ab38a973df78d#6fe4cad04ea6c735231a66e68d5ab38a973df78d"
+
+[[package]]
+name = "wasmi_core"
+version = "0.51.0"
+source = "git+https://github.com/wasmi-labs/wasmi?rev=6fe4cad04ea6c735231a66e68d5ab38a973df78d#6fe4cad04ea6c735231a66e68d5ab38a973df78d"
+dependencies = [
+ "libm",
+]
+
+[[package]]
+name = "wasmi_ir"
+version = "0.51.0"
+source = "git+https://github.com/wasmi-labs/wasmi?rev=6fe4cad04ea6c735231a66e68d5ab38a973df78d#6fe4cad04ea6c735231a66e68d5ab38a973df78d"
+dependencies = [
+ "wasmi_core",
+]
+
+[[package]]
+name = "wasmparser"
+version = "0.228.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4abf1132c1fdf747d56bbc1bb52152400c70f336870f968b85e89ea422198ae3"
+dependencies = [
+ "bitflags 2.10.0",
+]
+
+[[package]]
 name = "wasmparser"
 version = "0.239.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1023,7 +1072,7 @@ dependencies = [
  "serde_derive",
  "smallvec",
  "target-lexicon",
- "wasmparser",
+ "wasmparser 0.239.0",
  "wasmtime-environ",
  "wasmtime-internal-math",
  "wasmtime-internal-slab",
@@ -1050,7 +1099,7 @@ dependencies = [
  "serde_derive",
  "smallvec",
  "target-lexicon",
- "wasmparser",
+ "wasmparser 0.239.0",
 ]
 
 [[package]]
