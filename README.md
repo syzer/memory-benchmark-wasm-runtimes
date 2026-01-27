@@ -2,6 +2,8 @@
 
 This repository contains a benchmark suite for measuring the memory footprint of different WebAssembly runtimes when running on microcontrollers.
 
+TODO: Add a information about and link to the corresponding Fosdem talk
+
 ## Supported Runtimes
 
 | Runtime | Feature Flag | Module Format |
@@ -146,4 +148,11 @@ Ensure the `benchmark/wamr_specific/platform/embassy/` directory exists with the
 
 ## License
 
-<!-- TODO: Add license information -->
+The code in this repository (excluding contents of `third_party/` and other vendored projects, which have their own licenses) is licensed under either:
+
+- Apache License, Version 2.0, or
+- MIT license
+
+at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this repository by you shall be dual licensed as above, without any additional terms or conditions.
