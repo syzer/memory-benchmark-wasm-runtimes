@@ -25,6 +25,7 @@ fn main() {
 
     #[cfg(feature = "engine-wamr")]
     {
+        let wamr_aot = std::env::var_os("CARGO_FEATURE_WAMR_AOT").is_some();
         let wamr_dir = std::path::PathBuf::from("../third_party/wamr");
         println!("cargo:wamr_dir={}", wamr_dir.display()); // making it available to main code
         println!("cargo:rerun-if-changed={}", wamr_dir.display()); // rerun the build script if the wamr directory changes
@@ -86,6 +87,7 @@ fn main() {
             .include(wamr_dir.join("core/shared/mem-alloc"))
             .include(wamr_dir.join("core/iwasm/common"))
             .include(wamr_dir.join("core/iwasm/interpreter"))
+            .include(wamr_dir.join("core/iwasm/aot"))
             .file(wamr_dir.join("core/shared/mem-alloc/mem_alloc.c"))
             .file(wamr_dir.join("core/shared/mem-alloc/ems/ems_kfc.c"))
             .file(wamr_dir.join("core/shared/mem-alloc/ems/ems_alloc.c"))
@@ -101,13 +103,6 @@ fn main() {
             .file(wamr_dir.join("core/iwasm/common/wasm_exec_env.c"))
             .file(wamr_dir.join("core/iwasm/common/wasm_c_api.c")) // not sure whether this is smart - checking how much we save (answr is: not much)
             .file(wamr_dir.join("core/shared/utils/bh_log.c"))
-            // interpreter mode
-            .file(wamr_dir.join("core/iwasm/interpreter/wasm_loader.c"))
-            .file(wamr_dir.join("core/iwasm/interpreter/wasm_runtime.c"))
-            .file(wamr_dir.join("core/iwasm/interpreter/wasm_interp_classic.c"))
-            .file(wamr_dir.join("core/shared/utils/bh_hashmap.c"))
-            .define("WASM_ENABLE_AOT", Some("0"))
-            .define("WASM_ENABLE_INTERP", Some("1"))
             // other defines
             .define("BH_MALLOC", Some("wasm_runtime_malloc"))
             .define("BH_FREE", Some("wasm_runtime_free"))
@@ -119,8 +114,29 @@ fn main() {
             .flag("-Os")
             .flag("-ffunction-sections")
             .flag("-fdata-sections")
-            .flag("-g0") // No debug info
-            .compile("wamr");
+            .flag("-g0"); // No debug info
+
+        if wamr_aot {
+            cc_build
+                .file(wamr_dir.join("core/iwasm/aot/aot_loader.c"))
+                .file(wamr_dir.join("core/iwasm/aot/aot_runtime.c"))
+                .file(wamr_dir.join("core/iwasm/aot/aot_intrinsic.c"))
+                .file(wamr_dir.join("core/iwasm/aot/arch/aot_reloc_thumb.c"))
+                .define("WASM_ENABLE_AOT", Some("1"))
+                .define("WASM_ENABLE_INTERP", Some("0"));
+            println!("cargo:warning=WAMR mode: AOT");
+        } else {
+            cc_build
+                .file(wamr_dir.join("core/iwasm/interpreter/wasm_loader.c"))
+                .file(wamr_dir.join("core/iwasm/interpreter/wasm_runtime.c"))
+                .file(wamr_dir.join("core/iwasm/interpreter/wasm_interp_classic.c"))
+                .file(wamr_dir.join("core/shared/utils/bh_hashmap.c"))
+                .define("WASM_ENABLE_AOT", Some("0"))
+                .define("WASM_ENABLE_INTERP", Some("1"));
+            println!("cargo:warning=WAMR mode: interpreter");
+        }
+
+        cc_build.compile("wamr");
 
         println!("cargo:rustc-link-lib=static=wamr"); // link the static library to the final binary
         println!("cargo:rustc-link-search=native={}", out_path.display()); // search for the static library in the output directory (so that we know where the file is we just mentioned)

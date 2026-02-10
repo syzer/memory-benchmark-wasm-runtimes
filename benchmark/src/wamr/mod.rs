@@ -54,6 +54,9 @@ fn fallible_logic() -> Result<(), &'static str> {
     }
     defmt::info!("Log function registered");
 
+    #[cfg(feature = "wamr-aot")]
+    let wasm_bytes = include_bytes!("../../../benchmark_module.aot");
+    #[cfg(not(feature = "wamr-aot"))]
     let wasm_bytes =
         include_bytes!("../../../benchmark_module/target/wasm32-unknown-unknown/release/benchmark_module.wasm");
 
