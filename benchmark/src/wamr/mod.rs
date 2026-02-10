@@ -1,4 +1,5 @@
 use crate::wamr::{bindings::wasm_runtime_init, platform::register_stack_boundary};
+use cortex_m::peripheral::DWT;
 use embassy_time::Instant;
 
 mod bindings {
@@ -68,17 +69,29 @@ fn fallible_logic() -> Result<(), &'static str> {
     let module_inst = instantiate_module(module)?;
     defmt::info!("Module instantiated");
 
+    init_cycle_counter();
+    let start_cycles = DWT::cycle_count();
     let start = Instant::now();
     call_run_function(module_inst, ITERATIONS)?;
+    let elapsed_cycles = DWT::cycle_count().wrapping_sub(start_cycles);
     let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=wamr iterations={} elapsed_ticks={} elapsed_us={}",
+        "benchmark done engine=wamr iterations={} elapsed_cycles={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
+        elapsed_cycles,
         elapsed.as_ticks(),
         elapsed.as_micros()
     );
 
     Ok(())
+}
+
+fn init_cycle_counter() {
+    unsafe {
+        let mut core = cortex_m::Peripherals::steal();
+        core.DCB.enable_trace();
+        core.DWT.enable_cycle_counter();
+    }
 }
 
 fn init_wamr_runtime() -> Result<(), &'static str> {
