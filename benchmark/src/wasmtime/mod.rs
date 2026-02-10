@@ -59,11 +59,12 @@ pub async fn wasm_task() {
 
     let start = Instant::now();
     run.call(&mut store, ITERATIONS).unwrap();
-    let elapsed_us = (Instant::now() - start).as_micros();
+    let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=wasmtime iterations={} elapsed_us={}",
+        "benchmark done engine=wasmtime iterations={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
-        elapsed_us
+        elapsed.as_ticks(),
+        elapsed.as_micros()
     );
 }
 

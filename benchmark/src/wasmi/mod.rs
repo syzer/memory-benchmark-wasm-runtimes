@@ -33,10 +33,11 @@ pub async fn wasm_task() {
     run_fn
         .call(store, ITERATIONS)
         .expect("failed to call run function with wasmi");
-    let elapsed_us = (Instant::now() - start).as_micros();
+    let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=wasmi iterations={} elapsed_us={}",
+        "benchmark done engine=wasmi iterations={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
-        elapsed_us
+        elapsed.as_ticks(),
+        elapsed.as_micros()
     );
 }

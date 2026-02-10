@@ -46,10 +46,11 @@ pub async fn wasm_task() {
     let start = Instant::now();
     func.call(&mut store, ITERATIONS)
         .expect("failed to call function with tinywasm");
-    let elapsed_us = (Instant::now() - start).as_micros();
+    let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=tinywasm iterations={} elapsed_us={}",
+        "benchmark done engine=tinywasm iterations={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
-        elapsed_us
+        elapsed.as_ticks(),
+        elapsed.as_micros()
     );
 }

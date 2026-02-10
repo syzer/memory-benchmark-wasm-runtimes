@@ -7,7 +7,7 @@ mod bindings {
 
 mod platform;
 
-const ITERATIONS: i32 = 100_000;
+const ITERATIONS: i32 = 5_000_000;
 
 #[embassy_executor::task]
 pub async fn wasm_task() {
@@ -70,11 +70,12 @@ fn fallible_logic() -> Result<(), &'static str> {
 
     let start = Instant::now();
     call_run_function(module_inst, ITERATIONS)?;
-    let elapsed_us = (Instant::now() - start).as_micros();
+    let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=wamr iterations={} elapsed_us={}",
+        "benchmark done engine=wamr iterations={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
-        elapsed_us
+        elapsed.as_ticks(),
+        elapsed.as_micros()
     );
 
     Ok(())
