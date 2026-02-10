@@ -1,18 +1,16 @@
 extern crate alloc;
 
-use core::any::Any;
-
-use alloc::boxed::Box;
-use alloc::vec::Vec;
-
 use tinywasm::{
-    types::{TinyWasmModule, WasmValue},
+    types::TinyWasmModule,
     Module, StackConfig, Store,
 };
 
 use crate::tiny::imports::setup_imports;
+use embassy_time::Instant;
 
 mod imports;
+
+const ITERATIONS: i32 = 100_000;
 
 #[allow(dead_code)]
 fn precompiled_module() -> Module {
@@ -42,9 +40,16 @@ pub async fn wasm_task() {
 
     // we retrieve functions the same way as before
     let func = instance
-        .exported_func::<(), ()>(&store, "run")
+        .exported_func::<i32, ()>(&store, "run")
         .expect("failed to get function");
 
-    func.call(&mut store, ())
+    let start = Instant::now();
+    func.call(&mut store, ITERATIONS)
         .expect("failed to call function with tinywasm");
+    let elapsed_us = (Instant::now() - start).as_micros();
+    defmt::info!(
+        "benchmark done engine=tinywasm iterations={} elapsed_us={}",
+        ITERATIONS,
+        elapsed_us
+    );
 }

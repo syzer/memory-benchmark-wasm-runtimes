@@ -1,10 +1,13 @@
 use crate::wamr::{bindings::wasm_runtime_init, platform::register_stack_boundary};
+use embassy_time::Instant;
 
 mod bindings {
     include!(concat!(env!("OUT_DIR"), "/wamr_bindings.rs"));
 }
 
 mod platform;
+
+const ITERATIONS: i32 = 100_000;
 
 #[embassy_executor::task]
 pub async fn wasm_task() {
@@ -65,8 +68,14 @@ fn fallible_logic() -> Result<(), &'static str> {
     let module_inst = instantiate_module(module)?;
     defmt::info!("Module instantiated");
 
-    call_run_function(module_inst)?;
-    defmt::info!("run function of the module executed");
+    let start = Instant::now();
+    call_run_function(module_inst, ITERATIONS)?;
+    let elapsed_us = (Instant::now() - start).as_micros();
+    defmt::info!(
+        "benchmark done engine=wamr iterations={} elapsed_us={}",
+        ITERATIONS,
+        elapsed_us
+    );
 
     Ok(())
 }
@@ -177,7 +186,10 @@ fn instantiate_module(
     }
 }
 
-fn call_run_function(module_inst: bindings::wasm_module_inst_t) -> Result<(), &'static str> {
+fn call_run_function(
+    module_inst: bindings::wasm_module_inst_t,
+    iterations: i32,
+) -> Result<(), &'static str> {
     // Look up the run function
     let function = unsafe {
         bindings::wasm_runtime_lookup_function(
@@ -198,12 +210,11 @@ fn call_run_function(module_inst: bindings::wasm_module_inst_t) -> Result<(), &'
         return Err("failed to create exec environment");
     }
 
-    let mut argv = [0u32; 2]; // we need to allocate space for the way Wamr uses the arg vector internally, even if we don't need args
+    let mut argv = [iterations as u32, 0u32];
 
     defmt::info!("about to call run function");
 
-    let success =
-        unsafe { bindings::wasm_runtime_call_wasm(exec_env, function, 0, argv.as_mut_ptr()) }; // no arguments
+    let success = unsafe { bindings::wasm_runtime_call_wasm(exec_env, function, 1, argv.as_mut_ptr()) };
 
     // cleanup
     unsafe {

@@ -1,8 +1,11 @@
 use crate::wasmi::wasm::{init_runtime, instantiate_module, Runtime};
+use embassy_time::Instant;
 
 extern crate alloc;
 
 mod wasm;
+
+const ITERATIONS: i32 = 100_000;
 
 #[embassy_executor::task]
 pub async fn wasm_task() {
@@ -22,11 +25,18 @@ pub async fn wasm_task() {
         }
     };
 
-    let led_fn = running
-        .get_typed_func::<(), ()>(&mut store, "run")
+    let run_fn = running
+        .get_typed_func::<i32, ()>(&mut store, "run")
         .expect("failed to get function");
 
-    led_fn
-        .call(store, ())
+    let start = Instant::now();
+    run_fn
+        .call(store, ITERATIONS)
         .expect("failed to call run function with wasmi");
+    let elapsed_us = (Instant::now() - start).as_micros();
+    defmt::info!(
+        "benchmark done engine=wasmi iterations={} elapsed_us={}",
+        ITERATIONS,
+        elapsed_us
+    );
 }

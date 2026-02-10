@@ -1,8 +1,11 @@
 use wasmtime::{AsContext, Caller, Config, Engine, Func, Instance, Memory, Module, Store};
+use embassy_time::Instant;
 
 // Note for me: https://docs.wasmtime.dev/examples-minimal.html
 // (has a nice walkthrough how to shrink stuff - Rust stuffs in general and wasmtime in particular)
 // Other note: we pre-compile the module using the wasmtime engine. I have a project on that on my local system
+
+const ITERATIONS: i32 = 100_000;
 
 #[embassy_executor::task]
 pub async fn wasm_task() {
@@ -51,10 +54,17 @@ pub async fn wasm_task() {
         .expect("failed to instantiate module");
 
     let run = instance
-        .get_typed_func::<(), ()>(&mut store, "run")
+        .get_typed_func::<i32, ()>(&mut store, "run")
         .unwrap();
 
-    run.call(&mut store, ()).unwrap();
+    let start = Instant::now();
+    run.call(&mut store, ITERATIONS).unwrap();
+    let elapsed_us = (Instant::now() - start).as_micros();
+    defmt::info!(
+        "benchmark done engine=wasmtime iterations={} elapsed_us={}",
+        ITERATIONS,
+        elapsed_us
+    );
 }
 
 pub(super) fn log(mut caller: Caller<'_, ()>, buffer_ptr: u32, length: u32) {
