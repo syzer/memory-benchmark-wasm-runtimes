@@ -118,6 +118,9 @@ fn main() {
             .flag("-g0"); // No debug info
 
         if wamr_aot {
+            // WAMR AOT Thumb reloc code uses pointer arithmetic that trips arm-none-eabi-gcc
+            // (void* mixed into int32 math). Patch this line at build-time so AOT builds on
+            // nRF targets without carrying a local fork of the WAMR submodule.
             let aot_reloc_src = wamr_dir.join("core/iwasm/aot/arch/aot_reloc_thumb.c");
             println!("cargo:rerun-if-changed={}", aot_reloc_src.display());
             let patched_aot_reloc = out_path.join("aot_reloc_thumb_patched.c");
