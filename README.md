@@ -11,7 +11,7 @@ TODO: Add a information about and link to the corresponding Fosdem talk
 | [Wasmi](https://github.com/wasmi-labs/wasmi) | `engine-wasmi` | `.wasm` (interpreted) |
 | [Tinywasm](https://github.com/explodingcamera/tinywasm) | `engine-tinywasm` | `.tw` (precompiled) |
 | [Wasmtime](https://github.com/bytecodealliance/wasmtime) | `engine-wasmtime` | `.cwasm` (precompiled, Pulley VM) |
-| [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime) | `engine-wamr` | `.aot` (ahead-of-time compiled) |
+| [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime) | `engine-wamr` | `.wasm` (interpreter mode) |
 
 ## Hardware Requirements
 
@@ -71,9 +71,9 @@ This script:
 - Precompiles it for Wasmtime (`.cwasm`)
 - Precompiles it for Tinywasm (`.tw`)
 
-#### Full Build (including WAMR)
+#### Optional: Build WAMR AOT module
 
-To also build the WAMR AOT module, run after the `build_modules.sh` script finishes:
+If you want to generate a WAMR AOT module (not required for the default WAMR runtime path in this repo), run after the `build_modules.sh` script finishes:
 
 ```bash
 ./build_wamr_aot_module.sh
@@ -81,7 +81,7 @@ To also build the WAMR AOT module, run after the `build_modules.sh` script finis
 
 > **Note:** This script needs to compile LLVM to build the `wamrc` compiler. The first run takes a **long time** (30+ minutes depending on your machine). Subsequent runs are fast as LLVM and `wamrc` are cached.
 
-The script will automatically install required dependencies (`ninja-build`, `cmake`, etc.) if they're missing.
+The script is Linux-oriented and automatically installs required dependencies (`ninja-build`, `cmake`, etc.) if they're missing.
 
 ### 3. Run the Benchmark
 
@@ -91,6 +91,8 @@ Run via `just` (recommended):
 just run        # default: XIAO nRF54L15 + wasmi
 just run-nrf54  # XIAO nRF54L15 + wasmi
 just run-nrf53  # nRF5340 DK + wasmi
+just run-wamr-nrf54 # XIAO nRF54L15 + WAMR
+just run-wamr-nrf53 # nRF5340 DK + WAMR
 ```
 
 Or run manually from the benchmark directory:

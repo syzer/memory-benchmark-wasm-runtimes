@@ -50,25 +50,13 @@ fn fallible_logic() -> Result<(), &'static str> {
     }
     defmt::info!("Log function registered");
 
-    let wasm_bytes = include_bytes!("../../../benchmark_module.aot");
+    let wasm_bytes =
+        include_bytes!("../../../benchmark_module/target/wasm32-unknown-unknown/release/benchmark_module.wasm");
 
-    // ADD: Validate AOT file structure before loading
-    defmt::info!("AOT file size: {} bytes", wasm_bytes.len());
+    defmt::info!("Wasm file size: {} bytes", wasm_bytes.len());
     if wasm_bytes.len() < 16 {
-        return Err("AOT file too small");
+        return Err("Wasm file too small");
     }
-
-    // Check magic number (first 4 bytes should be 0x746f6100 = "\0aot")
-    let magic = u32::from_le_bytes([wasm_bytes[0], wasm_bytes[1], wasm_bytes[2], wasm_bytes[3]]);
-    defmt::info!("AOT magic: 0x{:08x} (expected: 0x746f6100)", magic);
-
-    if magic != 0x746f6100 {
-        return Err("Invalid AOT magic number");
-    }
-
-    // Check version (bytes 4-7)
-    let version = u32::from_le_bytes([wasm_bytes[4], wasm_bytes[5], wasm_bytes[6], wasm_bytes[7]]);
-    defmt::info!("AOT version: {}", version);
 
     let mut wasm_vec = wasm_bytes.to_vec();
     let module = load_module(&mut wasm_vec)?;

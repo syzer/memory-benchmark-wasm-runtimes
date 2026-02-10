@@ -44,10 +44,16 @@ fn main() {
             .expect("WAMR include path invalid");
         println!("cargo:warning=WAMR include path: {}", include_path);
 
+        // Bindgen only needs to parse C headers, so force host target here.
+        // This avoids missing stdint/bool headers when Cargo target is bare-metal.
+        let host_target = std::env::var("HOST").expect("HOST not set");
+
         // use bindgen to generate bindings from the header
         let bindings = bindgen::Builder::default()
             .header(wasm_export_h.to_str().expect("header path invalid"))
+            .clang_arg(format!("--target={host_target}"))
             .parse_callbacks(Box::new(bindgen::CargoCallbacks::new())) // this adds rerun hooks for cargo
+            .layout_tests(false)
             .use_core() // to make bindgen not use std types
             .ctypes_prefix("core::ffi") // to make bindgen use core::ffi::c_types instead of std::os::raw::c_types - if we are fancy, we could give it a module we implemented here
             .generate()
@@ -79,13 +85,12 @@ fn main() {
             .include(wamr_dir.join("core/shared/platform/include"))
             .include(wamr_dir.join("core/shared/mem-alloc"))
             .include(wamr_dir.join("core/iwasm/common"))
-            // .include(wamr_dir.join("core/iwasm/interpreter")) // interpreter-specific includes from here on
-            .include(wamr_dir.join("core/iwasm/aot")) // interpreter-specific includes from here on
+            .include(wamr_dir.join("core/iwasm/interpreter"))
             .file(wamr_dir.join("core/shared/mem-alloc/mem_alloc.c"))
             .file(wamr_dir.join("core/shared/mem-alloc/ems/ems_kfc.c"))
             .file(wamr_dir.join("core/shared/mem-alloc/ems/ems_alloc.c"))
             .file(wamr_dir.join("core/shared/utils/bh_common.c"))
-            // .file(wamr_dir.join("core/shared/utils/bh_list.c"))
+            .file(wamr_dir.join("core/shared/utils/bh_list.c"))
             .file(wamr_dir.join("core/shared/utils/bh_vector.c"))
             .file(wamr_dir.join("core/shared/utils/bh_leb128.c"))
             .file(wamr_dir.join("core/iwasm/common/arch/invokeNative_general.c")) // we apparently could use sth else here (invokeNative_thumb) to optimize
@@ -96,27 +101,21 @@ fn main() {
             .file(wamr_dir.join("core/iwasm/common/wasm_exec_env.c"))
             .file(wamr_dir.join("core/iwasm/common/wasm_c_api.c")) // not sure whether this is smart - checking how much we save (answr is: not much)
             .file(wamr_dir.join("core/shared/utils/bh_log.c"))
-            // things needed just for interpreter
-            // .file(wamr_dir.join("core/iwasm/interpreter/wasm_loader.c")) // interpreter-mode specific stuff from here on out
-            // .file(wamr_dir.join("core/iwasm/interpreter/wasm_runtime.c"))
-            // .file(wamr_dir.join("core/iwasm/interpreter/wasm_interp_classic.c"))
-            // .define("WASM_ENABLE_INTERP", Some("1"))
-            // things needed just for aot
-            // .file(wamr_dir.join("core/iwasm/aot/aot_intrinsic.c"))
-            .file(wamr_dir.join("core/iwasm/aot/aot_loader.c"))
-            .file(wamr_dir.join("core/iwasm/aot/aot_runtime.c"))
-            .file(wamr_dir.join("core/iwasm/aot/arch/aot_reloc_thumb.c"))
+            // interpreter mode
+            .file(wamr_dir.join("core/iwasm/interpreter/wasm_loader.c"))
+            .file(wamr_dir.join("core/iwasm/interpreter/wasm_runtime.c"))
+            .file(wamr_dir.join("core/iwasm/interpreter/wasm_interp_classic.c"))
             .file(wamr_dir.join("core/shared/utils/bh_hashmap.c"))
-            .define("WASM_ENABLE_AOT", Some("1"))
-            .define("WASM_ENABLE_INTERP", Some("0"))
+            .define("WASM_ENABLE_AOT", Some("0"))
+            .define("WASM_ENABLE_INTERP", Some("1"))
             // other defines
             .define("BH_MALLOC", Some("wasm_runtime_malloc"))
             .define("BH_FREE", Some("wasm_runtime_free"))
-            .define("BUILD_TARGET_THUMB", None)
-            .define("BUILD_TARGET", Some("\"THUMBV7\"")) // for the AOT mode: must match our target (and the info we gave wamrc when compiling the module)
             .define("WASM_ENABLE_QUICK_AOT_ENTRY", Some("0")) // Disable quick entry optimization
             .define("WASM_ENABLE_AOT_INTRINSICS", Some("0")) // Disable quick entry optimization
             .define("WASM_ENABLE_LOG", Some("0"))
+            .flag("-include")
+            .flag("stdlib.h")
             .flag("-Os")
             .flag("-ffunction-sections")
             .flag("-fdata-sections")
