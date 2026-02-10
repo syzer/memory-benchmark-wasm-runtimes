@@ -15,7 +15,12 @@ TODO: Add a information about and link to the corresponding Fosdem talk
 
 ## Hardware Requirements
 
-This benchmark is designed for the **Nordic nRF5340** development kit. The board should be connected to your Linux machine via USB cable. No additional setup is required—`probe-rs` handles flashing and debugging automatically.
+This benchmark supports:
+
+- **Nordic nRF5340** development kit (default in `benchmark` crate)
+- **Seeed Studio XIAO nRF54L15** (verified)
+
+Connect the board via USB. `probe-rs` handles flashing and debugging.
 
 ## Prerequisites
 
@@ -25,7 +30,7 @@ The project uses Rust nightly. The correct toolchain and targets will be install
 
 ### probe-rs
 
-Install [probe-rs](https://probe.rs/) for flashing and running code on the nRF5340:
+Install [probe-rs](https://probe.rs/) for flashing and running code:
 
 ```bash
 cargo install probe-rs-tools
@@ -80,7 +85,15 @@ The script will automatically install required dependencies (`ninja-build`, `cma
 
 ### 3. Run the Benchmark
 
-Enter the benchmark directory and run with your chosen runtime:
+Run via `just` (recommended):
+
+```bash
+just run        # default: XIAO nRF54L15 + wasmi
+just run-nrf54  # XIAO nRF54L15 + wasmi
+just run-nrf53  # nRF5340 DK + wasmi
+```
+
+Or run manually from the benchmark directory:
 
 ```bash
 cd benchmark
@@ -93,13 +106,18 @@ Replace `engine-wasmi` with your desired runtime:
 - `engine-wasmtime` — Wasmtime with Pulley VM
 - `engine-wamr` — WAMR in AOT mode
 
-The benchmark will be flashed to the connected nRF5340 board and output will be displayed via RTT (Real-Time Transfer).
+The benchmark will be flashed to the connected board and output will be displayed via RTT (Real-Time Transfer).
+
+If you run manually and want to select the board explicitly, add one board feature:
+
+- `board-nrf53` — nRF5340 DK
+- `board-nrf54` — XIAO nRF54L15
 
 ## Repository Structure
 
 ```
 .
-├── benchmark/              # Main benchmark crate (runs on nRF5340)
+├── benchmark/              # Main benchmark crate (supports nRF5340 + nRF54L15)
 │   ├── src/
 │   │   ├── main.rs         # Entry point
 │   │   ├── wasmi/          # Wasmi runtime integration

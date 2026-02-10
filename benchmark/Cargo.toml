@@ -5,7 +5,10 @@ edition = "2021"
 
 [features]
 
-default = []
+default = ["board-nrf53"]
+
+board-nrf54 = ["embassy-nrf/nrf54l15-app-s"]
+board-nrf53 = ["embassy-nrf/nrf5340-app-s"]
 
 engine-wasmi = ["dep:wasmi"]
 engine-tinywasm = ["dep:tinywasm"]
@@ -38,7 +41,6 @@ embassy-time = { path = "../third_party/embassy/embassy-time", features = [
     "defmt-timestamp-uptime",
 ] }
 embassy-nrf = { path = "../third_party/embassy/embassy-nrf", features = [
-    "nrf5340-app-s",
     "time-driver-rtc1",
     "gpiote",
 ] }
