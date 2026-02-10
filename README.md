@@ -81,19 +81,27 @@ If you want to generate a WAMR AOT module (not required for the default WAMR run
 
 > **Note:** This script needs to compile LLVM to build the `wamrc` compiler. The first run takes a **long time** (30+ minutes depending on your machine). Subsequent runs are fast as LLVM and `wamrc` are cached.
 
-The script is Linux-oriented and automatically installs required dependencies (`ninja-build`, `cmake`, etc.) if they're missing.
+The script supports Linux and macOS. On Linux it can auto-install required dependencies (`ninja-build`, `cmake`, etc.); on macOS install missing tools via Homebrew if needed.
 
 ### 3. Run the Benchmark
 
 Run via `just` (recommended):
 
 ```bash
-just run        # default: XIAO nRF54L15 + wasmi
-just run-nrf54  # XIAO nRF54L15 + wasmi
-just run-nrf53  # nRF5340 DK + wasmi
-just run-wamr-nrf54 # XIAO nRF54L15 + WAMR
-just run-wamr-nrf53 # nRF5340 DK + WAMR
+just run                # default alias: run-wasmi-nrf54
+just run-wasmi-nrf54    # XIAO nRF54L15 + Wasmi
+just run-wasmi-nrf53    # nRF5340 DK + Wasmi
+just run-tinywasm-nrf54 # XIAO nRF54L15 + Tinywasm
+just run-tinywasm-nrf53 # nRF5340 DK + Tinywasm
+just run-wasmtime-nrf54 # XIAO nRF54L15 + Wasmtime
+just run-wasmtime-nrf53 # nRF5340 DK + Wasmtime
+just run-wamr-nrf54     # XIAO nRF54L15 + WAMR (interpreter)
+just run-wamr-nrf53     # nRF5340 DK + WAMR (interpreter)
+just run-wamr-aot-nrf54 # XIAO nRF54L15 + WAMR (AOT)
+just run-wamr-aot-nrf53 # nRF5340 DK + WAMR (AOT)
 ```
+
+Compatibility aliases are still available: `run-nrf54`, `run-nrf53`, and `run-wasmr-aot`.
 
 Or run manually from the benchmark directory:
 
@@ -106,7 +114,8 @@ Replace `engine-wasmi` with your desired runtime:
 - `engine-wasmi` — Wasmi interpreter
 - `engine-tinywasm` — Tinywasm
 - `engine-wasmtime` — Wasmtime with Pulley VM
-- `engine-wamr` — WAMR in AOT mode
+- `engine-wamr` — WAMR (interpreter by default)
+- `engine-wamr,wamr-aot` — WAMR in AOT mode
 
 The benchmark will be flashed to the connected board and output will be displayed via RTT (Real-Time Transfer).
 

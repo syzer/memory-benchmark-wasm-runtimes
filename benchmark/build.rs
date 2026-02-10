@@ -27,6 +27,7 @@ fn main() {
     {
         let wamr_aot = std::env::var_os("CARGO_FEATURE_WAMR_AOT").is_some();
         let wamr_dir = std::path::PathBuf::from("../third_party/wamr");
+        let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
         println!("cargo:wamr_dir={}", wamr_dir.display()); // making it available to main code
         println!("cargo:rerun-if-changed={}", wamr_dir.display()); // rerun the build script if the wamr directory changes
         println!(
@@ -61,7 +62,6 @@ fn main() {
             .expect("unable to generate bindings");
 
         // write the bindings to the output directory (this is where we put generated files when working with cargo)
-        let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
         bindings
             .write_to_file(out_path.join("wamr_bindings.rs"))
             .expect("could not write wamr bindings");
@@ -95,6 +95,7 @@ fn main() {
             .file(wamr_dir.join("core/shared/utils/bh_list.c"))
             .file(wamr_dir.join("core/shared/utils/bh_vector.c"))
             .file(wamr_dir.join("core/shared/utils/bh_leb128.c"))
+            .file(wamr_dir.join("core/shared/utils/bh_hashmap.c"))
             .file(wamr_dir.join("core/iwasm/common/arch/invokeNative_general.c")) // we apparently could use sth else here (invokeNative_thumb) to optimize
             .file(wamr_dir.join("core/iwasm/common/wasm_loader_common.c"))
             .file(wamr_dir.join("core/iwasm/common/wasm_runtime_common.c"))
@@ -117,11 +118,23 @@ fn main() {
             .flag("-g0"); // No debug info
 
         if wamr_aot {
+            let aot_reloc_src = wamr_dir.join("core/iwasm/aot/arch/aot_reloc_thumb.c");
+            println!("cargo:rerun-if-changed={}", aot_reloc_src.display());
+            let patched_aot_reloc = out_path.join("aot_reloc_thumb_patched.c");
+            let patched_contents = std::fs::read_to_string(&aot_reloc_src)
+                .expect("failed to read aot_reloc_thumb.c")
+                .replace(
+                    "offset += (symbol_addr + reloc_addend);",
+                    "offset += (int32)((intptr_t)symbol_addr + (intptr_t)reloc_addend);",
+                );
+            std::fs::write(&patched_aot_reloc, patched_contents)
+                .expect("failed to write patched aot_reloc_thumb.c");
+
             cc_build
                 .file(wamr_dir.join("core/iwasm/aot/aot_loader.c"))
                 .file(wamr_dir.join("core/iwasm/aot/aot_runtime.c"))
                 .file(wamr_dir.join("core/iwasm/aot/aot_intrinsic.c"))
-                .file(wamr_dir.join("core/iwasm/aot/arch/aot_reloc_thumb.c"))
+                .file(patched_aot_reloc)
                 .define("WASM_ENABLE_AOT", Some("1"))
                 .define("WASM_ENABLE_INTERP", Some("0"));
             println!("cargo:warning=WAMR mode: AOT");
@@ -130,7 +143,6 @@ fn main() {
                 .file(wamr_dir.join("core/iwasm/interpreter/wasm_loader.c"))
                 .file(wamr_dir.join("core/iwasm/interpreter/wasm_runtime.c"))
                 .file(wamr_dir.join("core/iwasm/interpreter/wasm_interp_classic.c"))
-                .file(wamr_dir.join("core/shared/utils/bh_hashmap.c"))
                 .define("WASM_ENABLE_AOT", Some("0"))
                 .define("WASM_ENABLE_INTERP", Some("1"));
             println!("cargo:warning=WAMR mode: interpreter");
