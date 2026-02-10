@@ -9,23 +9,52 @@ WAMRC="$WAMRC_BUILD_DIR/wamrc"
 
 INPUT_WASM="$SCRIPT_DIR/benchmark_module/target/wasm32-unknown-unknown/release/benchmark_module.wasm"
 OUTPUT_AOT="$SCRIPT_DIR/benchmark_module.aot"
+OS="$(uname -s)"
+
+require_cmd() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Error: required command '$1' not found"
+        exit 1
+    fi
+}
+
+cpu_count() {
+    if command -v nproc >/dev/null 2>&1; then
+        nproc
+    elif command -v sysctl >/dev/null 2>&1; then
+        sysctl -n hw.ncpu
+    else
+        echo 1
+    fi
+}
 
 # Step 0: Install dependencies (if needed)
 echo "=== Checking dependencies ==="
-MISSING_DEPS=()
-for dep in ninja-build build-essential cmake g++; do
-    if ! dpkg -l | grep -q "^ii  $dep "; then
-        MISSING_DEPS+=("$dep")
-    fi
-done
+require_cmd cmake
+if [[ "$OS" == "Linux" ]]; then
+    MISSING_DEPS=()
+    for dep in ninja-build build-essential cmake g++; do
+        if ! dpkg -l | grep -q "^ii  $dep "; then
+            MISSING_DEPS+=("$dep")
+        fi
+    done
 
-if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
-    echo "=== Installing missing dependencies: ${MISSING_DEPS[*]} ==="
-    echo "This requires sudo privileges..."
-    sudo apt-get update
-    sudo apt-get install -y "${MISSING_DEPS[@]}"
+    if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
+        echo "=== Installing missing dependencies: ${MISSING_DEPS[*]} ==="
+        echo "This requires sudo privileges..."
+        sudo apt-get update
+        sudo apt-get install -y "${MISSING_DEPS[@]}"
+    else
+        echo "=== All dependencies already installed ==="
+    fi
+elif [[ "$OS" == "Darwin" ]]; then
+    require_cmd make
+    require_cmd clang
+    if ! command -v ninja >/dev/null 2>&1; then
+        echo "Warning: ninja not found. Install with: brew install ninja"
+    fi
 else
-    echo "=== All dependencies already installed ==="
+    echo "Warning: unsupported host OS '$OS'. Trying with existing toolchain."
 fi
 
 # Check that input wasm exists
@@ -50,7 +79,7 @@ if [[ ! -x "$WAMRC" ]]; then
     mkdir -p "$WAMRC_BUILD_DIR"
     cd "$WAMRC_BUILD_DIR"
     cmake ..
-    make -j"$(nproc)"
+    make -j"$(cpu_count)"
 else
     echo "=== wamrc already built, skipping ==="
 fi
