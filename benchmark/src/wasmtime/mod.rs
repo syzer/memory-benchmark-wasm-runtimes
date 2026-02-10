@@ -1,3 +1,4 @@
+use cortex_m::peripheral::DWT;
 use wasmtime::{AsContext, Caller, Config, Engine, Func, Instance, Memory, Module, Store};
 use embassy_time::Instant;
 
@@ -57,15 +58,27 @@ pub async fn wasm_task() {
         .get_typed_func::<i32, ()>(&mut store, "run")
         .unwrap();
 
+    init_cycle_counter();
+    let start_cycles = DWT::cycle_count();
     let start = Instant::now();
     run.call(&mut store, ITERATIONS).unwrap();
+    let elapsed_cycles = DWT::cycle_count().wrapping_sub(start_cycles);
     let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=wasmtime iterations={} elapsed_ticks={} elapsed_us={}",
+        "benchmark done engine=wasmtime iterations={} elapsed_cycles={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
+        elapsed_cycles,
         elapsed.as_ticks(),
         elapsed.as_micros()
     );
+}
+
+fn init_cycle_counter() {
+    unsafe {
+        let mut core = cortex_m::Peripherals::steal();
+        core.DCB.enable_trace();
+        core.DWT.enable_cycle_counter();
+    }
 }
 
 pub(super) fn log(mut caller: Caller<'_, ()>, buffer_ptr: u32, length: u32) {

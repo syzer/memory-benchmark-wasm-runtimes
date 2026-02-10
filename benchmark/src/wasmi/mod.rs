@@ -1,4 +1,5 @@
 use crate::wasmi::wasm::{init_runtime, instantiate_module, Runtime};
+use cortex_m::peripheral::DWT;
 use embassy_time::Instant;
 
 extern crate alloc;
@@ -29,15 +30,27 @@ pub async fn wasm_task() {
         .get_typed_func::<i32, ()>(&mut store, "run")
         .expect("failed to get function");
 
+    init_cycle_counter();
+    let start_cycles = DWT::cycle_count();
     let start = Instant::now();
     run_fn
         .call(store, ITERATIONS)
         .expect("failed to call run function with wasmi");
+    let elapsed_cycles = DWT::cycle_count().wrapping_sub(start_cycles);
     let elapsed = Instant::now() - start;
     defmt::info!(
-        "benchmark done engine=wasmi iterations={} elapsed_ticks={} elapsed_us={}",
+        "benchmark done engine=wasmi iterations={} elapsed_cycles={} elapsed_ticks={} elapsed_us={}",
         ITERATIONS,
+        elapsed_cycles,
         elapsed.as_ticks(),
         elapsed.as_micros()
     );
+}
+
+fn init_cycle_counter() {
+    unsafe {
+        let mut core = cortex_m::Peripherals::steal();
+        core.DCB.enable_trace();
+        core.DWT.enable_cycle_counter();
+    }
 }
