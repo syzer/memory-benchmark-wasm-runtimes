@@ -7,7 +7,7 @@ mod bindings {
 
 mod platform;
 
-const ITERATIONS: i32 = 5_000_000;
+const ITERATIONS: i32 = 500_000;
 
 #[embassy_executor::task]
 pub async fn wasm_task() {
